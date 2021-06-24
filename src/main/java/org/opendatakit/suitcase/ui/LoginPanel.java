@@ -5,6 +5,8 @@ import org.opendatakit.suitcase.net.LoginTask;
 import org.opendatakit.suitcase.net.SuitcaseSwingWorker;
 import org.opendatakit.suitcase.net.SyncWrapper;
 import org.opendatakit.suitcase.utils.FieldsValidatorUtils;
+import org.opendatakit.suitcase.utils.FileUtils;
+import org.opendatakit.suitcase.utils.SuitcaseConst;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,7 +14,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.*;
 import java.net.MalformedURLException;
+import java.util.Properties;
 
 public class LoginPanel extends JPanel implements PropertyChangeListener {
   private class LoginActionListener implements ActionListener {
@@ -69,6 +73,7 @@ public class LoginPanel extends JPanel implements PropertyChangeListener {
   private JPasswordField sPasswordText;
   private JButton sLoginButton;
   private JButton sAnonLoginButton;
+  private JCheckBox sRememberMeCheckBox;
 
   private MainPanel parent;
 
@@ -83,6 +88,7 @@ public class LoginPanel extends JPanel implements PropertyChangeListener {
     this.sPasswordText = new JPasswordField(1);
     this.sLoginButton = new JButton();
     this.sAnonLoginButton = new JButton();
+    this.sRememberMeCheckBox = new JCheckBox();
 
     GridBagConstraints gbc = LayoutDefault.getDefaultGbc();
     gbc.gridx = 0;
@@ -96,7 +102,8 @@ public class LoginPanel extends JPanel implements PropertyChangeListener {
     gbc.weighty = 85;
     gbc.insets = new Insets(80, 50, 0, 50);
     this.add(inputPanel, gbc);
-
+    JPanel checkBoxPanel = new CheckboxPanel(new String[] {"Remember me"},new JCheckBox[] {sRememberMeCheckBox} ,1,1);
+    this.add(checkBoxPanel);
     JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 20, 0));
     buildLoginButtonArea(buttonPanel);
     gbc.weighty = 15;
@@ -147,8 +154,27 @@ public class LoginPanel extends JPanel implements PropertyChangeListener {
       sAnonLoginButton.setText(LOGIN_ANON_LABEL);
       sAnonLoginButton.setEnabled(true);
 
-      // if login is successful, let parent switch to the next card
+      // if login is successful, save credentials and let parent switch to the next card
       if (SyncWrapper.getInstance().isInitialized()) {
+        File propFile = new File(SuitcaseConst.PROPERTIES_FILE);
+        if(!propFile.exists()) {
+          try {
+            propFile.createNewFile();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+        try(FileInputStream fileInputStream = new FileInputStream(propFile);) {
+          Properties appProps = new Properties();
+          appProps.load(fileInputStream);
+          appProps.put("username", sUserNameText.getText());
+          appProps.put("password", sPasswordText.getPassword());
+          appProps.put("server_url",sCloudEndpointAddressText.getText());
+          appProps.put("app_id",sAppIdText.getText());
+          appProps.store(new FileWriter(SuitcaseConst.PROPERTIES_FILE),"Store login credentials to properties file");
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
         ((CardLayout) getParent().getLayout()).next(getParent());
       }
     }
