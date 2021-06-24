@@ -5,7 +5,6 @@ import org.opendatakit.suitcase.net.LoginTask;
 import org.opendatakit.suitcase.net.SuitcaseSwingWorker;
 import org.opendatakit.suitcase.net.SyncWrapper;
 import org.opendatakit.suitcase.utils.FieldsValidatorUtils;
-import org.opendatakit.suitcase.utils.FileUtils;
 import org.opendatakit.suitcase.utils.SuitcaseConst;
 
 import javax.swing.*;
